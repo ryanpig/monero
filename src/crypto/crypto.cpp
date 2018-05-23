@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2018, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <unistd.h>
@@ -43,6 +43,17 @@
 #include "warnings.h"
 #include "crypto.h"
 #include "hash.h"
+
+// new added Changlun
+#include <iostream>
+#include <fstream>
+#include <sys/stat.h>
+#include <sstream>
+#include <string>
+#include <boost/functional/hash.hpp>
+#include <iomanip>
+#include <cstdlib>
+
 
 namespace {
   static void local_abort(const char *msg)
@@ -64,6 +75,12 @@ namespace crypto {
   using std::size_t;
   using std::uint32_t;
   using std::uint64_t;
+  //using std::endl;
+  using namespace std;
+  std::string readfile (const std::string &);
+  double hashCode(std::string);
+  std::string double2hexstr(long double x);
+
 
   extern "C" {
 #include "crypto-ops.h"
@@ -105,10 +122,10 @@ namespace crypto {
     sc_reduce32(&res);
   }
 
-  /* 
+  /*
    * generate public and secret keys from a random 256-bit integer
    * TODO: allow specifying random value (for wallet recovery)
-   * 
+   *
    */
   secret_key crypto_ops::generate_keys(public_key &pub, secret_key &sec, const secret_key& recovery_key, bool recover) {
     ge_p3 point;
@@ -131,6 +148,137 @@ namespace crypto {
 
     return rng;
   }
+
+  /* new c++ program
+    2018/05/24 Changlun
+  */
+void crypto_ops::test_VAT(){
+    struct stat results;
+
+    if (stat("Invoice_Template.pdf", &results) == 0)
+        cout << "The size of pdf file:" << results.st_size << endl;
+    else
+        cout << "The file doesn't exist!" << endl;
+
+    //Read string from the pdf document.
+    std::string res = readfile("Invoice_Template.pdf");
+    cout << res << endl;
+    char const *c = res.c_str();
+    cout << sizeof(c) << endl;
+
+    //Genearate hash value (The
+    std::string test = "sdfsfwef";
+
+    //not test
+    ec_scalar res_hash;
+    hash_to_scalar(c, 32, &res_hash);
+
+    for(int i=0;i<32;i++){
+        cout<res
+    }
+    //Convert it to a 32 byte hash value.
+    std::string hex_str;
+    long double hash_value = hashCode(test);
+    cout << hash_value << endl;
+    cout << sizeof(hash_value) << endl;
+    hex_str = double2hexstr(hash_value);
+    cout << hex_str << endl;
+    cout << sizeof(hex_str) << endl;
+
+
+    std::stringstream stream;
+    stream << std::hex << hash_value;
+    std::string result( stream.str() );
+    cout << result << endl;
+    unsigned char * data = new unsigned char[32];
+    long double tmp;
+    int64_t mask = 255;
+    for (int i=0;i<32;i++){
+        tmp = (int64_t(hash_value) & (mask << 1*i*8)) >> i*8;
+        data[i] = tmp;
+        //cout << int(data[i]) << "-" << tmp << endl;
+    }
+
+    //Truncate 32 bytes to 26 bytes and append 6 virtual VAT bytes
+    const int VAT_bytes_size = 6;
+    char * ch = new char[VAT_bytes_size];
+    //virtual 6 byte VAT input
+    ch[0] = 'a';
+    ch[1] = 'b';
+    ch[2] = 'c';
+    ch[3] = 'd';
+    ch[4] = 'e';
+    ch[5] = 'f';
+    //Replace 32 bytes with 6 bytes (VAT) plus 26 existing bytes.
+    std::stringstream stream2;
+    for(int i=0;i<VAT_bytes_size;i++){
+        int tmp = (int)ch[i];
+        data[i] = ch[i];
+        //verify hex output (VAT)
+        stream2 << std::hex << tmp;
+        std::string result( stream2.str() );
+        cout << result << endl;
+    }
+    //verify the hex output to make sure if it's replaced successfully.
+    std::stringstream stream3;
+    for (int i=0;i<32;i++){
+
+        stream3 << std::hex << int(data[i]);
+        std::string result( stream3.str() );
+        cout << result << endl;
+        cout << int(data[i]) << "-" << tmp << endl;
+    }
+
+    // Create keys
+    /*public_key pub;
+    secret_key sec;
+    secret_key sec_res;
+    const secret_key recovery_key;
+    bool recover = false;
+    sec_res = crypto_ops::generate_keys(&pub, &sec, & recovery_key,recover);
+*/
+
+  }
+
+//function implemenation
+std::string double2hexstr(long double x) {
+
+    union
+    {
+        long long i;
+        long double    d;
+    } value;
+
+   value.d = x;
+
+   char buf[17];
+
+   snprintf (buf,sizeof(buf),"%016llx",value.i);
+   buf[16]=0; //make sure it is null terminated.
+
+   return std::string(buf);
+
+}
+double hashCode(std::string input_str)
+{
+    boost::hash<std::string> string_hash;
+
+    return string_hash(input_str);
+}
+
+
+std::string readfile( const std::string& path )
+{
+    std::ostringstream contents;
+    std::ifstream file(path.c_str(), std::ios::binary);
+    contents << file.rdbuf();
+
+    return (contents.str());
+}
+
+
+ /////
+
 
   bool crypto_ops::check_key(const public_key &key) {
     ge_p3 point;
@@ -318,7 +466,7 @@ namespace crypto {
     // pick random k
     ec_scalar k;
     random_scalar(k);
-    
+
     s_comm_2 buf;
     buf.msg = prefix_hash;
     buf.D = D;
@@ -337,7 +485,7 @@ namespace crypto {
       ge_scalarmult_base(&X_p3, &k);
       ge_p3_tobytes(&buf.X, &X_p3);
     }
-    
+
     // compute Y = k*A
     ge_p2 Y_p2;
     ge_scalarmult(&Y_p2, &k, &A_p3);
