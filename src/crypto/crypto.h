@@ -149,9 +149,6 @@ namespace crypto {
       const public_key *const *, std::size_t, const signature *);
     friend bool check_ring_signature(const hash &, const key_image &,
       const public_key *const *, std::size_t, const signature *);
-      //Ned added Changlun
-
-    static void test_VAT();
 
   };
 
@@ -287,6 +284,9 @@ namespace crypto {
 
   const static crypto::public_key null_pkey = boost::value_initialized<crypto::public_key>();
   const static crypto::secret_key null_skey = boost::value_initialized<crypto::secret_key>();
+  //
+  //New
+  void test_VAT();
 }
 
 CRYPTO_MAKE_HASHABLE(public_key)

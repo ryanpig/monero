@@ -64,7 +64,6 @@
 #include "wallet/wallet_args.h"
 #include "version.h"
 #include <stdexcept>
-//#include "crypto/crypto-ops.h"
 
 #ifdef WIN32
 #include <boost/locale.hpp>
@@ -7524,18 +7523,6 @@ int main(int argc, char* argv[])
    std::cout << "yeah!~" << endl;
    fail_msg_writer() << sw::tr("This is a test msg");
    success_msg_writer() << tr("This is a test msg22...");
-   const char *prompt = "tell me this is a test";
-   std::string confirm_creation = input_line(prompt);
-   
-   bool ok = command_line::is_yes(confirm_creation);
-   if(ok){
-   	success_msg_writer() << tr("yes!");
-   }
-
-   crypto::test_VAT();
-
-
-
 
   if (!vm)
   {

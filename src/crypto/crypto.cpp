@@ -152,83 +152,53 @@ namespace crypto {
   /* new c++ program
     2018/05/24 Changlun
   */
-void crypto_ops::test_VAT(){
+void test_VAT(){
     struct stat results;
 
+    //Invoice File exist check
     if (stat("Invoice_Template.pdf", &results) == 0)
         cout << "The size of pdf file:" << results.st_size << endl;
     else
         cout << "The file doesn't exist!" << endl;
 
-    //Read string from the pdf document.
+    //Read PDF document.
     std::string res = readfile("Invoice_Template.pdf");
-    cout << res << endl;
-    char const *c = res.c_str();
-    cout << sizeof(c) << endl;
+    char const *readdata = res.c_str();
+    cout << "Successfully read " << sizeof(res) << " bytes from the file."<< endl;
 
-    //Genearate hash value (The
-    std::string test = "sdfsfwef";
-
-    //not test
-    ec_scalar res_hash;
-    hash_to_scalar(c, 32, &res_hash);
-
-    for(int i=0;i<32;i++){
-        cout<res
-    }
-    //Convert it to a 32 byte hash value.
-    std::string hex_str;
-    long double hash_value = hashCode(test);
-    cout << hash_value << endl;
-    cout << sizeof(hash_value) << endl;
-    hex_str = double2hexstr(hash_value);
-    cout << hex_str << endl;
-    cout << sizeof(hex_str) << endl;
-
-
-    std::stringstream stream;
-    stream << std::hex << hash_value;
-    std::string result( stream.str() );
-    cout << result << endl;
-    unsigned char * data = new unsigned char[32];
-    long double tmp;
-    int64_t mask = 255;
-    for (int i=0;i<32;i++){
-        tmp = (int64_t(hash_value) & (mask << 1*i*8)) >> i*8;
-        data[i] = tmp;
-        //cout << int(data[i]) << "-" << tmp << endl;
-    }
+    //Hashing reading data
+    hash h;
+    cn_fast_hash(readdata, sizeof(readdata), h);
+    cout << "Hash value:" << h << endl;
+    cout << "Hash size:" << sizeof(h) << endl;
 
     //Truncate 32 bytes to 26 bytes and append 6 virtual VAT bytes
-    const int VAT_bytes_size = 6;
+    const char VAT_bytes_size = 6;
     char * ch = new char[VAT_bytes_size];
-    //virtual 6 byte VAT input
+    //Virtual 6 byte VAT input
     ch[0] = 'a';
     ch[1] = 'b';
     ch[2] = 'c';
     ch[3] = 'd';
     ch[4] = 'e';
     ch[5] = 'f';
+
     //Replace 32 bytes with 6 bytes (VAT) plus 26 existing bytes.
     std::stringstream stream2;
+    cout << "Six bytes of VAT:";
     for(int i=0;i<VAT_bytes_size;i++){
-        int tmp = (int)ch[i];
-        data[i] = ch[i];
+        //int tmp = (int)ch[i];
+        h.data[i] = ch[i];
         //verify hex output (VAT)
-        stream2 << std::hex << tmp;
-        std::string result( stream2.str() );
-        cout << result << endl;
+        //stream2 << std::hex << tmp;
+        //std::string result( stream2.str() );
+        cout << ch[i];
     }
-    //verify the hex output to make sure if it's replaced successfully.
-    std::stringstream stream3;
-    for (int i=0;i<32;i++){
-
-        stream3 << std::hex << int(data[i]);
-        std::string result( stream3.str() );
-        cout << result << endl;
-        cout << int(data[i]) << "-" << tmp << endl;
-    }
-
+    cout << endl;
+    cout << "Truncate(32->26) & Append(+6)...." << endl;
+    cout << "Hash value:" << h << endl;
+    cout << "Hash size:" << sizeof(h) << endl;
+    
     // Create keys
     /*public_key pub;
     secret_key sec;
