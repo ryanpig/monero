@@ -2382,41 +2382,38 @@ bool simple_wallet::test(const std::vector<std::string> &args)
     }
 	//New added code block yeah
 
-         const cryptonote::account_public_address &keys = m_wallet->get_account().get_keys().m_account_address;
-      
-         std::cout << "secret view key: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key) << std::endl;
-  
-         std::cout << "public view key: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_view_public_key) << std::endl;
-
-        std::cout << "account public address: " << string_tools::pod_to_hex(keys) << std::endl;
-        crypto::public_key pub;
-        pub = m_wallet->get_account().get_keys().m_account_address.m_view_public_key;
-	const crypto::secret_key sec = m_wallet->get_account().get_keys().m_view_secret_key;
 	
 	// Integrated address 
 	crypto::hash8 payment_id;
 	crypto::hash payment_id32;
-        payment_id = crypto::rand<crypto::hash8>();
-        payment_id32 = crypto::rand<crypto::hash>();
+	payment_id = crypto::rand<crypto::hash8>();
+	payment_id32 = crypto::rand<crypto::hash>();
 	cout << "---------32 byte integrated address test ------" << endl;
 	cout << "The size of payment_id32:" << sizeof(payment_id32) << endl; 
 	cout << "generate a 8 bytes random payment_id:" << payment_id << endl;
 	cout << "generate a 32 bytes random payment_id:" << payment_id32 << endl;
-// working
-        success_msg_writer() << tr("Random payment ID(8): ") << string_tools::pod_to_hex(payment_id) << endl;;
-        success_msg_writer() << tr("Matching integrated address(8): ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype()) << endl;
+	success_msg_writer() << tr("Random payment ID(8): ") << string_tools::pod_to_hex(payment_id) << endl;;
+	success_msg_writer() << tr("Matching integrated address(8): ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype()) << endl;
+	success_msg_writer() << tr("Random payment ID(32): ") << string_tools::pod_to_hex(payment_id32) << endl;;
+	success_msg_writer() << tr("Matching integrated address(32): ") << m_wallet->get_account().get_public_integrated_address_str32(payment_id32, m_wallet->nettype()) << endl;
       
-        success_msg_writer() << tr("Random payment ID(32): ") << string_tools::pod_to_hex(payment_id32) << endl;;
-        success_msg_writer() << tr("Matching integrated address(32): ") << m_wallet->get_account().get_public_integrated_address_str32(payment_id32, m_wallet->nettype()) << endl;
-    bool ok = false;
-/*
-      ok =  hw::ledger::device_ledger::encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &pub, const crypto::secret_key &sec); 
-      if(ok)
-	  cout << "encrypted 8 bytes payment_id:"<< payment_id << endl;
-      else 
+// working
+	// encrypion 
+        const cryptonote::account_public_address &keys = m_wallet->get_account().get_keys().m_account_address;
+        std::cout << "secret view key: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key) << std::endl;
+        std::cout << "public view key: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_view_public_key) << std::endl;
+        std::cout << "account public address: " << string_tools::pod_to_hex(keys) << std::endl;
+        crypto::public_key pub;
+        pub = m_wallet->get_account().get_keys().m_account_address.m_view_public_key;
+	const crypto::secret_key sec = m_wallet->get_account().get_keys().m_view_secret_key;
+        bool ok = false;
+  /*      ok =  hw::ledger::device_ledger::encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &pub, const crypto::secret_key &sec); 
+        if(ok)
+ 	  cout << "encrypted 8 bytes payment_id:"<< payment_id << endl;
+        else 
 	  cout << "fail to encrypt it." << endl;
-*/
 
+*/
 
       //ok =  hw::ledger::device_ledger::encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &pub, const crypto::secret_key &sec) 
         // End of new added code block 
@@ -4462,7 +4459,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
      fail_msg_writer() << tr("wrong number of arguments");
      return true;
   }
-
+//yeahtransfer
   std::vector<uint8_t> extra;
   bool payment_id_seen = false;
   bool expect_even = (transfer_type == TransferLocked);
@@ -4473,10 +4470,20 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
     crypto::hash payment_id;
     bool r = tools::wallet2::parse_long_payment_id(payment_id_str, payment_id);
+    //New added
+    cout << "return parse_long_payment_id:" << r << endl;
+    cout << "Transfer with payment id " << payment_id_str << endl; 
+    
     if(r)
     {
+      	    
       std::string extra_nonce;
       set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+      // 32 bytes  encryption
+      crypto::hash payment_id32;
+      set_encrypted_payment_id_to_tx_extra_nonce32(extra_nonce, payment_id32);
+      //working
+      cout << "set_encrypted_payment_id_to_tx_extra_nonce32 (extra_nonce, payment_id32)" << endl;
       r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
     }
     else
