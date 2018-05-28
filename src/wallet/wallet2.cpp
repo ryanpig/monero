@@ -578,7 +578,7 @@ uint8_t get_bulletproof_fork()
 {
   return 8;
 }
-
+/*
 crypto::hash8 get_short_payment_id(const tools::wallet2::pending_tx &ptx, hw::device &hwdev)
 {
   crypto::hash8 payment_id8 = null_hash8;
@@ -599,20 +599,50 @@ crypto::hash8 get_short_payment_id(const tools::wallet2::pending_tx &ptx, hw::de
   }
   return payment_id8;
 }
-
+*/
+//new added
+crypto::hash get_short_payment_id32(const tools::wallet2::pending_tx &ptx, hw::device &hwdev)
+{
+  cout << "get_short_payment_id32" << endl;
+  crypto::hash payment_id = null_hash;
+  std::vector<tx_extra_field> tx_extra_fields;
+  parse_tx_extra(ptx.tx.extra, tx_extra_fields); // ok if partially parsed
+  cryptonote::tx_extra_nonce extra_nonce;
+  if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
+  {
+    if(get_encrypted_payment_id_from_tx_extra_nonce32(extra_nonce.nonce, payment_id))
+    {
+      if (ptx.dests.empty())
+      {
+        MWARNING("Encrypted payment id found, but no destinations public key, cannot decrypt");
+        return crypto::null_hash;
+      }
+      hwdev.decrypt_payment_id32(payment_id, ptx.dests[0].addr.m_view_public_key, ptx.tx_key);
+    }
+  }
+  return payment_id;
+}
+// Modify (hash8 -> hash) 
 tools::wallet2::tx_construction_data get_construction_data_with_decrypted_short_payment_id(const tools::wallet2::pending_tx &ptx, hw::device &hwdev)
 {
   tools::wallet2::tx_construction_data construction_data = ptx.construction_data;
-  crypto::hash8 payment_id = get_short_payment_id(ptx,hwdev);
-  if (payment_id != null_hash8)
+//  crypto::hash8 payment_id = get_short_payment_id(ptx,hwdev);
+
+  crypto::hash payment_id = get_short_payment_id32(ptx,hwdev);
+  cout << "tx_construction_data , get_construnction_data_with_decrypted_short_payment_id" << endl;
+//  if (payment_id != null_hash8)
+  if (payment_id != null_hash)
   {
     // Remove encrypted
     remove_field_from_tx_extra(construction_data.extra, typeid(cryptonote::tx_extra_nonce));
     // Add decrypted
     std::string extra_nonce;
-    set_encrypted_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+       //set_encrypted_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+    set_encrypted_payment_id_to_tx_extra_nonce32(extra_nonce, payment_id);
     THROW_WALLET_EXCEPTION_IF(!add_extra_nonce_to_tx_extra(construction_data.extra, extra_nonce),
         tools::error::wallet_internal_error, "Failed to add decrypted payment id to tx extra");
+
+    cout << "Decrypted 32Byte payment ID:" << payment_id;
     LOG_PRINT_L1("Decrypted payment ID: " << payment_id);
   }
   return construction_data;
@@ -4549,6 +4579,7 @@ crypto::hash wallet2::get_payment_id(const pending_tx &ptx) const
   crypto::hash payment_id = null_hash;
   if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
   {
+    //crypto::hash8 payment_id8 = null_hash8;
     crypto::hash8 payment_id8 = null_hash8;
     if(get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
     {
