@@ -904,6 +904,12 @@ std::string wallet2::get_integrated_address_as_str(const crypto::hash8& payment_
 {
   return cryptonote::get_account_integrated_address_as_str(m_nettype, get_address(), payment_id);
 }
+//New function to support 32 byte payment id 
+std::string wallet2::get_integrated_address_as_str32(const crypto::hash& payment_id) const
+{
+  return cryptonote::get_account_integrated_address_as_str32(m_nettype, get_address(), payment_id);
+}
+
 //----------------------------------------------------------------------------------------------------
 void wallet2::add_subaddress_account(const std::string& label)
 {
@@ -4534,6 +4540,7 @@ std::vector<std::vector<cryptonote::tx_destination_entry>> split_amounts(
 }
 } // anonymous namespace
 //----------------------------------------------------------------------------------------------------
+///yeah
 crypto::hash wallet2::get_payment_id(const pending_tx &ptx) const
 {
   std::vector<tx_extra_field> tx_extra_fields;

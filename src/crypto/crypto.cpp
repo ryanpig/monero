@@ -164,7 +164,12 @@ void test_VAT(){
     //Read PDF document.
     std::string res = readfile("Invoice_Template.pdf");
     char const *readdata = res.c_str();
-    cout << "Successfully read " << sizeof(res) << " bytes from the file."<< endl;
+    cout << sizeof(*readdata) << endl;
+    //cout << readdata << endl;
+    if(sizeof(readdata))
+       cout << "Successfully read file."<< endl;
+    else
+       cout << "Failed to read the file." << endl;
 
     //Hashing reading data
     hash h;
@@ -199,15 +204,20 @@ void test_VAT(){
     cout << "Hash value:" << h << endl;
     cout << "Hash size:" << sizeof(h) << endl;
     
-    // Create keys
-    /*public_key pub;
+    // Create keys yeah
+    /*
+  //secret_key crypto_ops::generate_keys(public_key &pub, secret_key &sec, const secret_key& recovery_key, bool recover) {
+    public_key pub;
     secret_key sec;
     secret_key sec_res;
-    const secret_key recovery_key;
+    const secret_key recovery_key = secret_key();
     bool recover = false;
-    sec_res = crypto_ops::generate_keys(&pub, &sec, & recovery_key,recover);
-*/
+    sec_res = crypto_ops::generate_keys(&pub, &sec, &recovery_key,recover);
 
+    cout << "public_key:" << pub << endl;
+    cout << "secret_key:" << sec << endl;
+    cout << "secret_rnd:" << sec_res << endl;    
+*/
   }
 
 //function implemenation

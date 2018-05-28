@@ -104,6 +104,13 @@ namespace cryptonote {
     , const account_public_address& adr
     , const crypto::hash8& payment_id
     );
+//Ned added 
+  std::string get_account_integrated_address_as_str32(
+      network_type nettype
+    , const account_public_address& adr
+    , const crypto::hash& payment_id
+    );
+ // 
 
   bool get_account_address_from_str(
       address_parse_info& info

@@ -65,6 +65,10 @@
 #include "version.h"
 #include <stdexcept>
 //#include "crypto/crypto-ops.h"
+#include "crypto/hash.h"
+#include "misc_language.h"
+//new added 
+//#include "device/device_ledger.hpp"
 
 #ifdef WIN32
 #include <boost/locale.hpp>
@@ -2351,8 +2355,103 @@ simple_wallet::simple_wallet()
                            boost::bind(&simple_wallet::help, this, _1),
                            tr("help [<command>]"),
                            tr("Show the help section or the documentation about a <command>."));
+  m_cmd_binder.set_handler("test",
+                           boost::bind(&simple_wallet::test, this, _1),
+                           tr("Test function"),
+                           tr("Access public key & secret key"));
 }
 //----------------------------------------------------------------------------------------------------
+//yeahtest
+//
+//
+
+bool simple_wallet::test(const std::vector<std::string> &args)
+{
+  crypto::hash8 payment_id;
+  if (args.size() > 1)
+  {
+    fail_msg_writer() << tr("usage: integrated_address [payment ID]");
+    return true;
+  }
+  if (args.size() == 0)
+  {
+    if (m_current_subaddress_account != 0)
+    {
+      fail_msg_writer() << tr("Integrated addresses can only be created for account 0");
+      return true;
+    }
+    payment_id = crypto::rand<crypto::hash8>();
+    success_msg_writer() << tr("Random payment ID: ") << payment_id;
+    success_msg_writer() << tr("Matching integrated address: ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
+	//New added code block yeah
+
+         const cryptonote::account_public_address &keys = m_wallet->get_account().get_keys().m_account_address;
+      
+         std::cout << "secret: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key) << std::endl;
+  
+         std::cout << "public: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_view_public_key) << std::endl;
+
+        std::cout << "public address: " << string_tools::pod_to_hex(keys) << std::endl;
+        crypto::public_key pub;
+        pub = m_wallet->get_account().get_keys().m_account_address.m_view_public_key;
+	const crypto::secret_key sec = m_wallet->get_account().get_keys().m_view_secret_key;
+	crypto::hash8 payment_id;
+	crypto::hash payment_id32;
+        payment_id = crypto::rand<crypto::hash8>();
+        payment_id32 = crypto::rand<crypto::hash>();
+	cout << "generate a 8 bytes random payment_id:" << payment_id << endl;
+	cout << "generate a 32 bytes random payment_id:" << payment_id32 << endl;
+// working
+        success_msg_writer() << tr("Random payment ID: ") << string_tools::pod_to_hex(payment_id) << endl;;
+        success_msg_writer() << tr("Matching integrated address: ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
+      
+        success_msg_writer() << tr("Random payment ID(32): ") << string_tools::pod_to_hex(payment_id) << endl;;
+        success_msg_writer() << tr("Matching integrated address(32): ") << m_wallet->get_account().get_public_integrated_address_str32(payment_id32, m_wallet->nettype());
+    bool ok = false;
+/*
+      ok =  hw::ledger::device_ledger::encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &pub, const crypto::secret_key &sec); 
+      if(ok)
+	  cout << "encrypted 8 bytes payment_id:"<< payment_id << endl;
+      else 
+	  cout << "fail to encrypt it." << endl;
+*/
+
+
+      //ok =  hw::ledger::device_ledger::encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &pub, const crypto::secret_key &sec) 
+        // End of new added code block 
+    return true;
+  }
+  if(tools::wallet2::parse_short_payment_id(args.back(), payment_id))
+  {
+    if (m_current_subaddress_account != 0)
+    {
+      fail_msg_writer() << tr("Integrated addresses can only be created for account 0");
+      return true;
+    }
+    success_msg_writer() << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
+    return true;
+  }
+  else {
+    address_parse_info info;
+    if(get_account_address_from_str(info, m_wallet->nettype(), args.back()))
+    {
+      if (info.has_payment_id)
+      {
+        success_msg_writer() << boost::format(tr("Integrated address: %s, payment ID: %s")) %
+          get_account_address_as_str(m_wallet->nettype(), false, info.address) % epee::string_tools::pod_to_hex(info.payment_id);
+
+      }
+      else
+      {
+        success_msg_writer() << (info.is_subaddress ? tr("Subaddress: ") : tr("Standard address: ")) << get_account_address_as_str(m_wallet->nettype(), info.is_subaddress, info.address);
+      }
+      return true;
+    }
+  }
+  fail_msg_writer() << tr("failed to parse payment ID or address");
+  return true;
+}
+
 bool simple_wallet::set_variable(const std::vector<std::string> &args)
 {
   if (args.empty())
@@ -5287,6 +5386,7 @@ bool simple_wallet::donate(const std::vector<std::string> &args_)
   return true;
 }
 //----------------------------------------------------------------------------------------------------
+//yeah1
 bool simple_wallet::accept_loaded_tx(const std::function<size_t()> get_num_txes, const std::function<const tools::wallet2::tx_construction_data&(size_t)> &get_tx, const std::string &extra_message)
 {
   // gather info to ask the user
@@ -6737,6 +6837,7 @@ bool simple_wallet::print_integrated_address(const std::vector<std::string> &arg
       fail_msg_writer() << tr("Integrated addresses can only be created for account 0");
       return true;
     }
+    //yeahIA
     payment_id = crypto::rand<crypto::hash8>();
     success_msg_writer() << tr("Random payment ID: ") << payment_id;
     success_msg_writer() << tr("Matching integrated address: ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
@@ -7521,20 +7622,45 @@ int main(int argc, char* argv[])
  * testing
  */
 
-   std::cout << "yeah!~" << endl;
-   fail_msg_writer() << sw::tr("This is a test msg");
-   success_msg_writer() << tr("This is a test msg22...");
-   const char *prompt = "tell me this is a test";
+   std::cout << "test command support" << endl;
+   const char *prompt = "Ready to start? (Y/y)";
    std::string confirm_creation = input_line(prompt);
    
    bool ok = command_line::is_yes(confirm_creation);
    if(ok){
-   	success_msg_writer() << tr("yes!");
+   	success_msg_writer() << tr("input 'test' to run the testing function");
+   }else
+   {
+    
    }
 
+   // Hashing the invoice and VAT
+   crypto::hash hash_pdf;
    crypto::test_VAT();
+   // yeahmain
+
+  //Encrypted paymentid (8 bytes version
+  //Get all the keys by get_account()_get_keys().m_account_address;
 
 
+   /*
+//Print_integrated_address 
+  m_cmd_binder.set_handler("integrated_address",
+                           boost::bind(&simple_wallet::print_integrated_address, this, _1),
+                           tr("integrated_address [<payment_id> | <address>]"),
+                           tr("Encode a payment ID into an integrated address for the current wallet public address (no argument uses a random payment ID), or decode an integrated address to standard address and payment ID"));
+//generate a 8 bytes hash, and mix with public address
+    payment_id = crypto::rand<crypto::hash8>();
+    success_msg_writer() << tr("Random payment ID: ") << payment_id;
+    success_msg_writer() << tr("Matching integrated address: ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
+
+*/
+   /*
+   
+  const crypto::public_key &public_spend_key = *(const crypto::public_key*)&data[0];
+  const crypto::public_key &public_view_key = *(const crypto::public_key*)&data[sizeof(crypto::public_key)];
+  const cryptonote::account_public_address &keys = m_wallet->get_account().get_keys().m_account_address;
+    * */
 
 
   if (!vm)

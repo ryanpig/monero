@@ -191,5 +191,12 @@ DISABLE_VS_WARNINGS(4244 4345)
     //TODO: change this code into base 58
     return get_account_integrated_address_as_str(nettype, m_keys.m_account_address, payment_id);
   }
+  //New added
+  //-----------------------------------------------------------------
+  std::string account_base::get_public_integrated_address_str32(const crypto::hash &payment_id, network_type nettype) const
+  {
+    //TODO: change this code into base 58
+    return get_account_integrated_address_as_str32(nettype, m_keys.m_account_address, payment_id);
+  }
   //-----------------------------------------------------------------
 }
