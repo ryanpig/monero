@@ -2380,33 +2380,34 @@ bool simple_wallet::test(const std::vector<std::string> &args)
       fail_msg_writer() << tr("Integrated addresses can only be created for account 0");
       return true;
     }
-    payment_id = crypto::rand<crypto::hash8>();
-    success_msg_writer() << tr("Random payment ID: ") << payment_id;
-    success_msg_writer() << tr("Matching integrated address: ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
 	//New added code block yeah
 
          const cryptonote::account_public_address &keys = m_wallet->get_account().get_keys().m_account_address;
       
-         std::cout << "secret: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key) << std::endl;
+         std::cout << "secret view key: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key) << std::endl;
   
-         std::cout << "public: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_view_public_key) << std::endl;
+         std::cout << "public view key: " << string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_view_public_key) << std::endl;
 
-        std::cout << "public address: " << string_tools::pod_to_hex(keys) << std::endl;
+        std::cout << "account public address: " << string_tools::pod_to_hex(keys) << std::endl;
         crypto::public_key pub;
         pub = m_wallet->get_account().get_keys().m_account_address.m_view_public_key;
 	const crypto::secret_key sec = m_wallet->get_account().get_keys().m_view_secret_key;
+	
+	// Integrated address 
 	crypto::hash8 payment_id;
 	crypto::hash payment_id32;
         payment_id = crypto::rand<crypto::hash8>();
         payment_id32 = crypto::rand<crypto::hash>();
+	cout << "---------32 byte integrated address test ------" << endl;
+	cout << "The size of payment_id32:" << sizeof(payment_id32) << endl; 
 	cout << "generate a 8 bytes random payment_id:" << payment_id << endl;
 	cout << "generate a 32 bytes random payment_id:" << payment_id32 << endl;
 // working
-        success_msg_writer() << tr("Random payment ID: ") << string_tools::pod_to_hex(payment_id) << endl;;
-        success_msg_writer() << tr("Matching integrated address: ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype());
+        success_msg_writer() << tr("Random payment ID(8): ") << string_tools::pod_to_hex(payment_id) << endl;;
+        success_msg_writer() << tr("Matching integrated address(8): ") << m_wallet->get_account().get_public_integrated_address_str(payment_id, m_wallet->nettype()) << endl;
       
-        success_msg_writer() << tr("Random payment ID(32): ") << string_tools::pod_to_hex(payment_id) << endl;;
-        success_msg_writer() << tr("Matching integrated address(32): ") << m_wallet->get_account().get_public_integrated_address_str32(payment_id32, m_wallet->nettype());
+        success_msg_writer() << tr("Random payment ID(32): ") << string_tools::pod_to_hex(payment_id32) << endl;;
+        success_msg_writer() << tr("Matching integrated address(32): ") << m_wallet->get_account().get_public_integrated_address_str32(payment_id32, m_wallet->nettype()) << endl;
     bool ok = false;
 /*
       ok =  hw::ledger::device_ledger::encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &pub, const crypto::secret_key &sec); 
